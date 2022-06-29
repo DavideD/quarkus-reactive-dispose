@@ -29,7 +29,7 @@ public class TaskResourceTest {
 
 		Long current = getTotal();
 
-		// It should have disposed of the bean and decreased the counter to the original value
+		// it should have decreased the counter to the original value while disposing of the bean
 		Assertions.assertEquals( initialTotal, current );
 	}
 

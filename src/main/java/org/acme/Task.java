@@ -1,8 +1,5 @@
 package org.acme;
 
-import javax.enterprise.inject.Default;
-import javax.inject.Singleton;
-
 import io.smallrye.mutiny.Uni;
 
 public class Task {
