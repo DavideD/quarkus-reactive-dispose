@@ -1,5 +1,8 @@
 package org.acme;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+
 import io.smallrye.mutiny.Uni;
 
 public class Task {
@@ -15,7 +18,9 @@ public class Task {
 	}
 
 	public Uni<String> done() {
-		return Uni.createFrom().item( "Finished task " + id );
+		return Uni.createFrom().voidItem()
+				.onItem().delayIt().by( Duration.of( 2, ChronoUnit.SECONDS ) )
+				.map( v -> "Finished task " + id );
 	}
 
 	@Override

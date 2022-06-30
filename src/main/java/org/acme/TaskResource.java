@@ -7,37 +7,24 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.core.shareddata.Counter;
 
 @Path("/task")
 @Produces(MediaType.TEXT_PLAIN)
 public class TaskResource {
 
 	@Inject
-	Vertx vertx;
-
-	@Inject
-	Uni<Task> taskUni;
+	Task task;
 
 	@GET
 	@Path("start")
 	public Uni<String> start() {
-		return taskUni.chain( Task::start );
+		return task.start();
 
-	}
-
-	@GET
-	@Path("decrease")
-	public Uni<String> decrease() {
-		return TaskProducer.getCounter( vertx )
-				.chain( Counter::decrementAndGet )
-				.map( count -> "Decreased tasks to " + count );
 	}
 
 	@GET
 	@Path("total")
-	public Uni<Long> total() {
-		return TaskProducer.getCounter( vertx ).chain( Counter::get );
+	public Long total() {
+		return TaskProducer.COUNTER.get();
 	}
 }

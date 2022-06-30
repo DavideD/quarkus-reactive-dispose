@@ -1,40 +1,43 @@
 package org.acme;
 
+import java.util.concurrent.atomic.AtomicLong;
 import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Disposes;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.Produces;
 
-import io.quarkus.logging.Log;
-import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.core.Vertx;
-import io.vertx.mutiny.core.shareddata.Counter;
+import org.jboss.logging.Logger;
 
 @Singleton
 public class TaskProducer {
 
-	public static final String COUNTER_NAME = "Counter.Current";
+	public static final AtomicLong COUNTER = new AtomicLong();
 
 	@Inject
-	Vertx vertx;
+	Logger log;
 
 	@Produces
 	@RequestScoped
-	public Uni<Task> createTask() {
-		Log.info( "Creating a new Task" );
-		return getCounter( vertx )
-				.chain( Counter::incrementAndGet )
-				.map( Task::new );
+	public Task createTask() {
+		log.info( "Creating a new Task" );
+		return new Task( COUNTER.incrementAndGet() );
 	}
 
-	public static Uni<Counter> getCounter(Vertx vertx) {
-		return vertx.sharedData().getCounter( COUNTER_NAME );
-	}
+	// How it should work:
+//	public Uni<Void> dispose(@Disposes Task task) {
+//		Log.info( "Finishing the task" );
+//		return task.done()
+//				.invoke( () -> COUNTER.decrementAndGet() )
+//				.replaceWithVoid();
+//	}
 
-	public Uni<String> dispose(@Disposes Uni<Task> taskUni) {
-		Log.info( "Finishing the task" );
-		return taskUni.chain( Task::done )
-				.call( s -> getCounter( vertx ).chain( Counter::decrementAndGet ) );
+	// Workaround we use now
+	public void disposeWithWorkaround(@Disposes Task task) {
+		log.info( "Finishing the task" );
+		task.done()
+				.invoke( () -> COUNTER.decrementAndGet() )
+				.invoke( log::info )
+				.subscribeAsCompletionStage();
 	}
 }
